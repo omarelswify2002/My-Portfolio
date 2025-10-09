@@ -3,6 +3,7 @@ let navbar = document.querySelector('.navBar');
 let sections = document.querySelectorAll('section');
 let navLinks = document.querySelectorAll('header nav a');
 let Form = document.getElementById('form');
+let profile_img = document.getElementById('profile_img');
 
 window.onscroll = ()=>{
     sections.forEach(sec => {
@@ -50,3 +51,37 @@ window.onclick = (event) => {
 Form.onsubmit = () => {
     alert('Thank you for your message!');
 }
+
+// Theme toggle functionality
+const themeToggle = document.getElementById('theme-toggle');
+const themeIcon = document.getElementById('theme-icon');
+const body = document.body;
+
+// Check for saved theme preference or default to 'dark'
+const currentTheme = localStorage.getItem('theme') || 'dark';
+
+// Apply the saved theme on page load
+if (currentTheme === 'light') {
+    body.setAttribute('data-theme', 'light');
+    themeIcon.classList.replace('bx-sun', 'bx-moon');
+    profile_img.src = 'image/Gemini_Generated_Image_ci63muci63muci63.png'; // Light mode image
+}
+
+// Theme toggle event listener
+themeToggle.addEventListener('click', () => {
+    const currentTheme = body.getAttribute('data-theme');
+
+    if (currentTheme === 'light') {
+        // Switch to dark theme
+        body.removeAttribute('data-theme');
+        themeIcon.classList.replace('bx-moon', 'bx-sun');
+        localStorage.setItem('theme', 'dark');
+        profile_img.src = 'image/Gemini_Generated_Image_tgg3potgg3potgg3.png'; // Dark mode image
+    } else {
+        // Switch to light theme
+        body.setAttribute('data-theme', 'light');
+        themeIcon.classList.replace('bx-sun', 'bx-moon');
+        localStorage.setItem('theme', 'light');
+        profile_img.src = 'image/Gemini_Generated_Image_ci63muci63muci63.png'; // Light mode image
+    }
+});

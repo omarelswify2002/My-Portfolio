@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Portfolio Website</title>
 </head>
 <body>
@@ -131,7 +132,11 @@
     <section class="Projects" id="Projects">
         <div class="Projects-box">
             <h2 class="heading">Projects</h2>
-            <div class="wrapper">
+            <button type="button" class="add-project-btn" id="add-project-btn">
+                <i class='bx bx-plus'></i>
+                Add New Project
+            </button>
+            <div class="wrapper" id="projects-wrapper">
                 <a href="https://zingy-toffee-9f9e16.netlify.app/" target="_blank" rel="noopener noreferrer" class="Projects-item">
                     <img src="image/To_Do_List.jpg" alt="no image">
                     <h2>To Do List</h2>
@@ -225,6 +230,40 @@
         </div>
     </section>
 
+    <!-- Add Project Modal -->
+    <div class="modal-overlay" id="project-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Project</h3>
+                <button type="button" class="close-modal" id="close-modal" title="Close Modal" aria-label="Close Modal">
+                    <i class='bx bx-x'></i>
+                </button>
+            </div>
+            <form class="project-form" id="project-form">
+                <div class="form-group">
+                    <label for="project-name">Project Name:</label>
+                    <input type="text" id="project-name" name="projectName" required>
+                </div>
+                <div class="form-group">
+                    <label for="project-link">Project Link:</label>
+                    <input type="url" id="project-link" name="projectLink" required>
+                </div>
+                <div class="form-group">
+                    <label for="project-image">Upload Image:</label>
+                    <input type="file" id="project-image" name="projectImageFile" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label for="project-description">Description:</label>
+                    <textarea id="project-description" name="projectDescription" rows="4" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="cancel-btn">Cancel</button>
+                    <button type="submit" class="btn-submit">Add Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <setion class="contact" id="contact">
         <h2 class="heading">Contact <span>Me</span></h2>
 
@@ -260,6 +299,7 @@
         </ul>
         <p class="copyright">&copy; Omar Elswify | All Rights Reserved</p>
     </footer>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="main.js"></script>
 </body>
 </html>

@@ -49,7 +49,13 @@ window.onclick = (event) => {
 }
 
 Form.onsubmit = () => {
-    alert('Thank you for your message!');
+    Swal.fire({
+        title: 'Message Sent!',
+        text: 'Thank you for your message!',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#00ffee'
+    });
 }
 
 // Theme toggle functionality
@@ -84,4 +90,257 @@ themeToggle.addEventListener('click', () => {
         localStorage.setItem('theme', 'light');
         profile_img.src = 'image/Gemini_Generated_Image_ci63muci63muci63.png'; // Light mode image
     }
+});
+
+// Project management functionality
+const addProjectBtn = document.getElementById('add-project-btn');
+const projectModal = document.getElementById('project-modal');
+const closeModal = document.getElementById('close-modal');
+const cancelBtn = document.getElementById('cancel-btn');
+const projectForm = document.getElementById('project-form');
+const projectsWrapper = document.getElementById('projects-wrapper');
+
+// Open modal
+addProjectBtn.addEventListener('click', () => {
+    projectModal.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+});
+
+// Close modal functions
+function closeProjectModal() {
+    projectModal.classList.remove('active');
+    document.body.style.overflow = 'auto'; // Restore scrolling
+    projectForm.reset(); // Clear form
+}
+
+closeModal.addEventListener('click', closeProjectModal);
+cancelBtn.addEventListener('click', closeProjectModal);
+
+// Close modal when clicking outside
+projectModal.addEventListener('click', (e) => {
+    if (e.target === projectModal) {
+        closeProjectModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && projectModal.classList.contains('active')) {
+        closeProjectModal();
+    }
+});
+
+// Handle form submission
+projectForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Get form data
+    const formData = new FormData(projectForm);
+    const imageFile = formData.get('projectImageFile');
+
+    // Check if image file is selected
+    if (!imageFile || imageFile.size === 0) {
+        Swal.fire({
+            title: 'No Image Selected',
+            text: 'Please select an image file!',
+            icon: 'warning',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#00ffee'
+        });
+        return;
+    }
+
+    // Check file type
+    if (!imageFile.type.startsWith('image/')) {
+        Swal.fire({
+            title: 'Invalid File Type',
+            text: 'Please select a valid image file!',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#00ffee'
+        });
+        return;
+    }
+
+    // Check file size (max 5MB)
+    if (imageFile.size > 5 * 1024 * 1024) {
+        Swal.fire({
+            title: 'File Too Large',
+            text: 'Image file size should be less than 5MB!',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#00ffee'
+        });
+        return;
+    }
+
+    // Convert image file to data URL
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const projectData = {
+            name: formData.get('projectName'),
+            link: formData.get('projectLink'),
+            image: e.target.result, // Use the data URL
+            description: formData.get('projectDescription'),
+            id: Date.now() // Add unique ID
+        };
+
+        // Save to localStorage
+        saveProjectToStorage(projectData);
+
+        // Create new project element
+        createProjectElement(projectData);
+
+        // Close modal and reset form
+        closeProjectModal();
+
+        // Show success message
+        Swal.fire({
+            title: 'Success!',
+            text: 'Project added successfully!',
+            icon: 'success',
+            confirmButtonText: 'Great!',
+            confirmButtonColor: '#00ffee',
+            timer: 2000,
+            timerProgressBar: true
+        });
+    };
+
+    reader.readAsDataURL(imageFile);
+});
+
+// Function to create a new project element
+function createProjectElement(projectData) {
+    const projectElement = document.createElement('div');
+    projectElement.className = 'Projects-item-wrapper';
+    projectElement.setAttribute('data-project-id', projectData.id);
+
+    projectElement.innerHTML = `
+        <a href="${projectData.link}" target="_blank" rel="noopener noreferrer" class="Projects-item">
+            <img src="${projectData.image}" alt="${projectData.name}">
+            <h2>${projectData.name}</h2>
+            <div class="rating">
+                <i class='bx bxs-star' id="star"></i>
+                <i class='bx bxs-star' id="star"></i>
+                <i class='bx bxs-star' id="star"></i>
+                <i class='bx bxs-star' id="star"></i>
+                <i class='bx bxs-star' id="star"></i>
+            </div>
+            <p>${projectData.description}</p>
+        </a>
+        <button type="button" class="delete-project-btn" onclick="deleteProject(${projectData.id})" title="Delete Project">
+            <i class='bx bx-trash'></i>
+        </button>
+    `;
+
+    // Add the new project to the wrapper
+    projectsWrapper.appendChild(projectElement);
+
+    // Add animation
+    projectElement.style.opacity = '0';
+    projectElement.style.transform = 'translateY(20px)';
+
+    setTimeout(() => {
+        projectElement.style.transition = 'all 0.5s ease';
+        projectElement.style.opacity = '1';
+        projectElement.style.transform = 'translateY(0)';
+    }, 100);
+}
+
+// Function to delete a project
+function deleteProject(projectId) {
+    const ADMIN_PASSWORD = 'Omar_2002'; // change to desired password
+
+    // First, ask for password
+    Swal.fire({
+        title: 'Admin Access Required',
+        text: 'Enter password to delete project:',
+        input: 'password',
+        inputPlaceholder: 'Enter password',
+        showCancelButton: true,
+        confirmButtonText: 'Verify',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#00ffee',
+        cancelButtonColor: '#d33',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'Please enter a password!';
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            if (result.value !== ADMIN_PASSWORD) {
+                Swal.fire({
+                    title: 'Access Denied',
+                    text: 'Incorrect password.',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#00ffee'
+                });
+                return;
+            }
+
+            // Password correct, now ask for confirmation
+            Swal.fire({
+                title: 'Delete Project?',
+                text: 'Are you sure you want to delete this project? This action cannot be undone!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#00ffee'
+            }).then((deleteResult) => {
+                if (deleteResult.isConfirmed) {
+                    // Remove from DOM
+                    const projectElement = document.querySelector(`[data-project-id="${projectId}"]`);
+                    if (projectElement) {
+                        projectElement.style.transition = 'all 0.3s ease';
+                        projectElement.style.opacity = '0';
+                        projectElement.style.transform = 'translateY(-20px)';
+
+                        setTimeout(() => {
+                            projectElement.remove();
+                        }, 300);
+                    }
+
+                    // Remove from localStorage
+                    let projects = JSON.parse(localStorage.getItem('portfolioProjects')) || [];
+                    const idNum = Number(projectId);
+                    projects = projects.filter(project => project.id !== idNum);
+                    localStorage.setItem('portfolioProjects', JSON.stringify(projects));
+
+                    // Show success message
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: 'Project has been deleted successfully.',
+                        icon: 'success',
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#00ffee',
+                        timer: 2000,
+                        timerProgressBar: true
+                    });
+                }
+            });
+        }
+    });
+}
+
+// LocalStorage functions
+function saveProjectToStorage(projectData) {
+    let projects = JSON.parse(localStorage.getItem('portfolioProjects')) || [];
+    projects.push(projectData);
+    localStorage.setItem('portfolioProjects', JSON.stringify(projects));
+}
+
+function loadProjectsFromStorage() {
+    const projects = JSON.parse(localStorage.getItem('portfolioProjects')) || [];
+    projects.forEach(project => {
+        createProjectElement(project);
+    });
+}
+
+// Load saved projects when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    loadProjectsFromStorage();
 });

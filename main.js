@@ -100,6 +100,9 @@ const cancelBtn = document.getElementById('cancel-btn');
 const projectForm = document.getElementById('project-form');
 const projectsWrapper = document.getElementById('projects-wrapper');
 
+// add admin password constant (used for add/delete)
+const ADMIN_PASSWORD = 'Omar_2002';
+
 // Open modal
 addProjectBtn.addEventListener('click', () => {
     projectModal.classList.add('active');
@@ -134,79 +137,111 @@ document.addEventListener('keydown', (e) => {
 projectForm.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    // Get form data
-    const formData = new FormData(projectForm);
-    const imageFile = formData.get('projectImageFile');
+    // Ask for admin password before adding a project
+    Swal.fire({
+        title: 'Admin Access Required',
+        text: 'Enter password to add project:',
+        input: 'password',
+        inputPlaceholder: 'Enter password',
+        showCancelButton: true,
+        confirmButtonText: 'Verify',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#00ffee',
+        cancelButtonColor: '#d33',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'Please enter a password!';
+            }
+        }
+    }).then((result) => {
+        if (!result.isConfirmed) return;
 
-    // Check if image file is selected
-    if (!imageFile || imageFile.size === 0) {
-        Swal.fire({
-            title: 'No Image Selected',
-            text: 'Please select an image file!',
-            icon: 'warning',
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#00ffee'
-        });
-        return;
-    }
+        if (result.value !== ADMIN_PASSWORD) {
+            Swal.fire({
+                title: 'Access Denied',
+                text: 'Incorrect password.',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#00ffee'
+            });
+            return;
+        }
 
-    // Check file type
-    if (!imageFile.type.startsWith('image/')) {
-        Swal.fire({
-            title: 'Invalid File Type',
-            text: 'Please select a valid image file!',
-            icon: 'error',
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#00ffee'
-        });
-        return;
-    }
+        // Password verified — proceed with original submit logic
+        // Get form data
+        const formData = new FormData(projectForm);
+        const imageFile = formData.get('projectImageFile');
 
-    // Check file size (max 5MB)
-    if (imageFile.size > 5 * 1024 * 1024) {
-        Swal.fire({
-            title: 'File Too Large',
-            text: 'Image file size should be less than 5MB!',
-            icon: 'error',
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#00ffee'
-        });
-        return;
-    }
+        // Check if image file is selected
+        if (!imageFile || imageFile.size === 0) {
+            Swal.fire({
+                title: 'No Image Selected',
+                text: 'Please select an image file!',
+                icon: 'warning',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#00ffee'
+            });
+            return;
+        }
 
-    // Convert image file to data URL
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const projectData = {
-            name: formData.get('projectName'),
-            link: formData.get('projectLink'),
-            image: e.target.result, // Use the data URL
-            description: formData.get('projectDescription'),
-            id: Date.now() // Add unique ID
+        // Check file type
+        if (!imageFile.type.startsWith('image/')) {
+            Swal.fire({
+                title: 'Invalid File Type',
+                text: 'Please select a valid image file!',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#00ffee'
+            });
+            return;
+        }
+
+        // Check file size (max 5MB)
+        if (imageFile.size > 5 * 1024 * 1024) {
+            Swal.fire({
+                title: 'File Too Large',
+                text: 'Image file size should be less than 5MB!',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#00ffee'
+            });
+            return;
+        }
+
+        // Convert image file to data URL
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const projectData = {
+                name: formData.get('projectName'),
+                link: formData.get('projectLink'),
+                image: e.target.result, // Use the data URL
+                description: formData.get('projectDescription'),
+                id: Date.now() // Add unique ID
+            };
+
+            // Save to localStorage
+            saveProjectToStorage(projectData);
+
+            // Create new project element
+            createProjectElement(projectData);
+
+            // Close modal and reset form
+            closeProjectModal();
+
+            // Show success message
+            Swal.fire({
+                title: 'Success!',
+                text: 'Project added successfully!',
+                icon: 'success',
+                confirmButtonText: 'Great!',
+                confirmButtonColor: '#00ffee',
+                timer: 2000,
+                timerProgressBar: true
+            });
         };
 
-        // Save to localStorage
-        saveProjectToStorage(projectData);
-
-        // Create new project element
-        createProjectElement(projectData);
-
-        // Close modal and reset form
-        closeProjectModal();
-
-        // Show success message
-        Swal.fire({
-            title: 'Success!',
-            text: 'Project added successfully!',
-            icon: 'success',
-            confirmButtonText: 'Great!',
-            confirmButtonColor: '#00ffee',
-            timer: 2000,
-            timerProgressBar: true
-        });
-    };
-
-    reader.readAsDataURL(imageFile);
+        reader.readAsDataURL(imageFile);
+    });
 });
 
 // Function to create a new project element

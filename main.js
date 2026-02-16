@@ -15,10 +15,14 @@ window.onscroll = ()=>{
         if(top >= offset && top < offset + height){
             navLinks.forEach(links => {
                 links.classList.remove('active');
-                document.querySelector('header nav a [href+=' + id + ']').classList.add('active')
-            })
+            });
+
+            const activeLink = document.querySelector(`header nav a[href="#${id}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
         }
-    })
+    });
 }
 
 menuIcon.onclick = ()=>{
@@ -375,7 +379,57 @@ function loadProjectsFromStorage() {
     });
 }
 
+function initScrollReveal() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+
+    const revealTargets = document.querySelectorAll(
+        '.home-content, .home-img, .timeline-item, .services-box, .Projects-item-wrapper, .Projects-item, .contact form'
+    );
+
+    if (!revealTargets.length) {
+        return;
+    }
+
+    revealTargets.forEach((element) => element.setAttribute('data-reveal', ''));
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) {
+                return;
+            }
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+        });
+    }, {
+        threshold: 0.12,
+        rootMargin: '0px 0px -30px 0px'
+    });
+
+    revealTargets.forEach((element) => observer.observe(element));
+}
+
+function initProfileMotion() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !profile_img) {
+        return;
+    }
+
+    profile_img.addEventListener('mousemove', (event) => {
+        const rect = profile_img.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - 0.5;
+        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        profile_img.style.transform = `rotateY(${x * 8}deg) rotateX(${y * -8}deg) scale(1.02)`;
+    });
+
+    profile_img.addEventListener('mouseleave', () => {
+        profile_img.style.transform = '';
+    });
+}
+
 // Load saved projects when page loads
 document.addEventListener('DOMContentLoaded', () => {
     loadProjectsFromStorage();
+    initScrollReveal();
+    initProfileMotion();
 });
